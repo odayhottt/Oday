@@ -1,24 +1,35 @@
-import asyncio
-from aiogram import Bot, Dispatcher, types, F
-from aiogram.types import Message
+from aiogram import Bot, Dispatcher, types
 from aiogram.enums import ParseMode
 from aiogram.utils.markdown import hbold
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+from aiogram import F
+from aiogram.utils.chat_action import ChatActionMiddleware
+from aiogram.client.session.aiohttp import AiohttpSession
+from aiogram import Router
+from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram import Dispatcher
+from aiogram import Bot
+import asyncio
 import os
 
-TOKEN = os.getenv("BOT_TOKEN")
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_ID = os.getenv("ADMIN_ID")
 
-bot = Bot(token=TOKEN, parse_mode=ParseMode.HTML)
-dp = Dispatcher()
+bot = Bot(token=BOT_TOKEN, parse_mode=ParseMode.HTML)
+dp = Dispatcher(storage=MemoryStorage())
+router = Router()
+dp.include_router(router)
+dp.message.middleware(ChatActionMiddleware())
 
-# /start
-@dp.message(F.text == "/start")
-async def send_welcome(message: Message):
-    kb = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    kb.add(types.KeyboardButton(text="🔐 فعل اشتراكي"))
 
+@router.message(F.text == "/start")
+async def cmd_start(message: types.Message):
+    keyboard = ReplyKeyboardMarkup(
+        keyboard=[[KeyboardButton(text="🔐 فعل اشتراكي")]],
+        resize_keyboard=True
+    )
     await message.answer(
-        f"👋 هلا فيك في البوت الرسمي لـ {hbold('Odayhottt')}
+        f"👋 هلا فيك في البوت الرسمي لـ {hbold('Prince Oday 🔥')}
 
 "
         "🔥 هنا تقدر تشترك بسهولة ونساعدك بخيارات دفع مرنة
@@ -31,21 +42,22 @@ async def send_welcome(message: Message):
         "- كريبتو: USDT (TRC20)
 
 "
-        "🔗 للدفع بالكريبتو:
+        "📲 للدفع بالكريبتو:
 "
-        "https://nowpayments.io/payment/?iid=5028834055&paymentId=6382218207
+        "🔗 https://nowpayments.io/payment/?iid=5028834055&paymentId=6382218207
 
 "
-        "⏳ اضغط الزر تحت تشوف تفاصيل الباقة وطريقة الدفع 👇",
-        reply_markup=kb
+        "⏳ أو اضغط الزر تحت تشوف تفاصيل الباقة وطريقة الدفع الأخرى 👇",
+        reply_markup=keyboard
     )
 
-# تفاصيل الباقة
-@dp.message(F.text == "🔐 فعل اشتراكي")
-async def show_package(message: Message):
-    kb = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    kb.add(types.KeyboardButton(text="✅ أرسلت الإثبات"))
 
+@router.message(F.text == "🔐 فعل اشتراكي")
+async def show_package_details(message: types.Message):
+    keyboard = ReplyKeyboardMarkup(
+        keyboard=[[KeyboardButton(text="📸 أرسلت الإثبات")]],
+        resize_keyboard=True
+    )
     await message.answer(
         "📦 الاشتراك الشهري بـ ٥٠٠ ريال فقط
 
@@ -75,23 +87,26 @@ async def show_package(message: Message):
 
 "
         "✅ بعد الدفع، اضغط الزر تحت وأرسل الإثبات.",
-        reply_markup=kb
+        reply_markup=keyboard
     )
 
-# إثبات الدفع
-@dp.message(F.text == "✅ أرسلت الإثبات")
-async def ask_for_proof(message: Message):
-    await message.answer("📸 أرسل الآن صورة أو سكرين لإثبات الدفع.
-"
-                         "⏳ بعد المراجعة اليدوية، يتم التفعيل.")
 
-@dp.message(F.photo)
-async def handle_photo(message: Message):
+@router.message(F.text == "📸 أرسلت الإثبات")
+async def ask_for_proof(message: types.Message):
+    await message.answer(
+        "📸 أرسل صورة أو سكرين لإثبات الدفع هنا.
+"
+        "🔔 بعد المراجعة اليدوية، يتم التفعيل عبر الخاص."
+    )
+
+
+@router.message(F.photo)
+async def handle_payment_proof(message: types.Message):
     user = message.from_user
     caption = (
         f"🔔 إثبات دفع جديد
 "
-        f"👤 من: @{user.username or 'بدون يوزر'}
+        f"👤 من: @{user.username if user.username else 'بدون يوزر'}
 "
         f"🆔 ID: {user.id}
 "
@@ -103,11 +118,12 @@ async def handle_photo(message: Message):
     await bot.send_photo(chat_id=ADMIN_ID, photo=message.photo[-1].file_id, caption=caption)
     await message.reply("📩 تم استلام الإثبات، بنراجع ونتواصل معك قريباً.")
 
-# روابط الحسابات
-@dp.message(F.text == "/accounts")
-async def accounts(message: Message):
+
+@router.message(F.text == "/accounts")
+async def send_accounts(message: types.Message):
     await message.answer("📱 كل حساباتي بمكان واحد:
 🌐 https://linktr.ee/odayhottt")
+
 
 async def main():
     await dp.start_polling(bot)
