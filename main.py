@@ -1,86 +1,83 @@
-
-import os
-from aiogram import Bot, Dispatcher, types
-from aiogram.utils import executor
-from aiogram.dispatcher import FSMContext
-from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.dispatcher.filters.state import State, StatesGroup
 import logging
+from aiogram import Bot, Dispatcher, types
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup
+from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State, StatesGroup
+from aiogram import F
+import asyncio
+import os
 
+TOKEN = os.getenv("BOT_TOKEN")
+ADMIN_ID = os.getenv("ADMIN_ID")
+
+bot = Bot(token=TOKEN)
+dp = Dispatcher(storage=MemoryStorage())
 logging.basicConfig(level=logging.INFO)
-bot = Bot(token=os.getenv("BOT_TOKEN"))
-storage = MemoryStorage()
-dp = Dispatcher(bot, storage=storage)
 
-# تعريف حالات المستخدم
-class UserStates(StatesGroup):
-    waiting_for_payment = State()
+class PaymentState(StatesGroup):
+    waiting_for_proof = State()
 
-# رسالة الترحيب
-@dp.message_handler(commands=["start"])
+@dp.message(F.text, commands="start")
 async def send_welcome(message: types.Message, state: FSMContext):
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.add("📦 تفاصيل الباقة", "💳 الدفع", "📩 أرسلت الدفع")
-    await message.answer("👋 هلا فيك، وش حاب تسوي؟", reply_markup=markup)
-
-# تفاصيل الباقة
-@dp.message_handler(lambda message: message.text == "📦 تفاصيل الباقة")
-async def package_details(message: types.Message):
+    await state.clear()
+    markup = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[[types.KeyboardButton(text="🔐 فعل اشتراكي")]])
     text = (
-        "📦 الاشتراك الشهري بـ ٥٠٠ ريال فقط\n\n"
-        "وش تحصل؟\n"
-        "– أكثر من 50 فيلم خاص 🎬\n"
-        "– كواليس حصرية 📹\n"
-        "– جودة أعلى وتجربة لك أنت بس ✨"
+        "👋 هلا فيك في البوت الرسمي لـ Odayhottt\n\n"
+        "🔥 هنا تقدر تشترك بسهولة ونساعدك بخيارات دفع مرنة\n\n"
+        "💳 خيارات الدفع:\n"
+        "- بطاقات نون مسبقة الدفع\n"
+        "- كريبتو: USDT (TRC20)\n\n"
+        "📲 للدفع بالكريبتو:\n"
+        "🔗 https://nowpayments.io/payment/?iid=5028834055&paymentId=6382218207\n\n"
+        "📦 اضغط الزر تحت تشوف تفاصيل الاشتراك 👇"
     )
-    await message.answer(text)
+    await message.answer(text, reply_markup=markup)
 
-# خيارات الدفع
-@dp.message_handler(lambda message: message.text == "💳 الدفع")
-async def payment_options(message: types.Message, state: FSMContext):
-    await UserStates.waiting_for_payment.set()
+@dp.message(F.text == "🔐 فعل اشتراكي")
+async def show_package(message: types.Message, state: FSMContext):
+    await state.set_state(PaymentState.waiting_for_proof)
+    markup = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="💳 اشتري بطاقة نون", url="https://ar-saudi.likecard.com/online-shopping/noon/noon-ksa/")],
+        [InlineKeyboardButton(text="🎁 متجر نون الآخر", url="https://yougotagift.com/shop/ar-sa/brands/noon-gift-card-sa/")],
+        [InlineKeyboardButton(text="🔗 ادفع كريبتو (USDT)", url="https://nowpayments.io/payment/?iid=5028834055&paymentId=6382218207")],
+        [InlineKeyboardButton(text="✉️ أرسل الإثبات في الخاص", url="https://t.me/odayh1")]
+    ])
     await message.answer(
-        "💳 اختر طريقتك:\n"
-        "🔸 بطاقات نون:\n"
-        "  • https://ar-saudi.likecard.com/online-shopping/noon/noon-ksa/\n"
-        "  • https://yougotagift.com/shop/ar-sa/brands/noon-gift-card-sa/\n\n"
-        "🔹 كريبتو (USDT):\n"
-        "  • https://nowpayments.io/payment/?iid=5028834055&paymentId=6382218207\n\n"
-        "📩 بعد الدفع، اضغط «أرسلت الدفع» وأرسل سكرين."
+        "📦 الاشتراك الشهري بـ ٥٠٠ ريال فقط\n\n"
+        "وش تحصل بعد الاشتراك؟\n"
+        "– أكثر من 50 فيلم كامل ✅\n"
+        "– جريء ومن إنتاجي الخاص 🎬\n"
+        "– كواليس وفعاليات من قلب التصوير 📹\n"
+        "– جودة أعلى… وتجربة مصممة لك أنت فقط ✨\n\n"
+        "✅ بعد الدفع، أرسل الإثبات على الخاص.",
+        reply_markup=markup
     )
 
-# إثبات الدفع
-@dp.message_handler(lambda message: message.text == "📩 أرسلت الدفع")
-async def ask_proof(message: types.Message, state: FSMContext):
-    current = await state.get_state()
-    if current != UserStates.waiting_for_payment.state:
-        await message.answer("💡 اضغط أول على «💳 الدفع» واختار طريقتك، بعدين أرسل الإثبات.")
+@dp.message(F.photo)
+async def handle_proof(message: types.Message, state: FSMContext):
+    current_state = await state.get_state()
+    if current_state != PaymentState.waiting_for_proof.state:
+        await message.reply("❗ اضغط أولًا على '🔐 فعل اشتراكي' علشان نكمل.")
         return
-    await message.answer("📸 أرسل الآن صورة أو سكرين لإثبات الدفع.")
-    await state.finish()
 
-@dp.message_handler(content_types=[types.ContentType.PHOTO, types.ContentType.DOCUMENT])
-async def handle_payment_proof(message: types.Message):
-    user = message.from_user
     caption = (
-        f"🔔 إثبات دفع\n"
-        f"👤 @{user.username if user.username else 'بدون يوزر'}\n"
-        f"🆔 {user.id}\n"
-        f"📆 {message.date}\n\n"
-        f"رابط: tg://user?id={user.id}"
+        f"🔔 إثبات دفع جديد\n"
+        f"👤 من: @{message.from_user.username or 'بدون يوزر'}\n"
+        f"🆔 ID: {message.from_user.id}\n"
+        f"رابط مباشر: tg://user?id={message.from_user.id}"
     )
-    admin_id = int(os.getenv("ADMIN_ID"))
-    if message.photo:
-        await bot.send_photo(chat_id=admin_id, photo=message.photo[-1].file_id, caption=caption)
-    elif message.document:
-        await bot.send_document(chat_id=admin_id, document=message.document.file_id, caption=caption)
+    await bot.send_photo(chat_id=ADMIN_ID, photo=message.photo[-1].file_id, caption=caption)
+    await message.reply("📩 تم استلام الإثبات، بنراجع ونتواصل معك قريباً.")
+    await state.clear()
 
-    await message.reply("📩 استلمنا الإثبات، بنراجعه ونرجع لك قريب.")
-
-# عرض الحسابات
-@dp.message_handler(commands=["accounts"])
+@dp.message(F.text, commands="accounts")
 async def send_accounts(message: types.Message):
-    await message.answer("📱 كل حساباتي هنا:\nhttps://linktr.ee/odayhottt")
+    await message.answer("📱 كل حساباتي بمكان واحد:\n🌐 https://linktr.ee/odayhottt")
+
+async def main():
+    await dp.start_polling(bot)
 
 if __name__ == "__main__":
-    executor.start_polling(dp, skip_updates=True)
+    import asyncio
+    asyncio.run(main())
