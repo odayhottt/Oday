@@ -1,25 +1,22 @@
+import logging
+import asyncio
 from aiogram import Bot, Dispatcher, types
 from aiogram.enums import ParseMode
 from aiogram.utils.markdown import hbold
-from aiogram.filters import CommandStart
-from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
-from aiogram import F
-from aiogram import Router
-from aiogram import asyncio
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 import os
 
+# إعدادات التوكن والمعرف
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-ADMIN_ID = os.getenv("ADMIN_ID")
+ADMIN_ID = int(os.getenv("ADMIN_ID", 0))
 
 bot = Bot(token=BOT_TOKEN, parse_mode=ParseMode.HTML)
-router = Router()
 dp = Dispatcher()
-dp.include_router(router)
 
 # رسالة الترحيب
-@router.message(CommandStart())
-async def send_welcome(message: Message):
-    markup = ReplyKeyboardMarkup(
+@dp.message(lambda message: message.text == "/start")
+async def send_welcome(message: types.Message):
+    keyboard = ReplyKeyboardMarkup(
         keyboard=[[KeyboardButton(text="🔐 فعل اشتراكي")]],
         resize_keyboard=True
     )
@@ -42,15 +39,15 @@ async def send_welcome(message: Message):
         "🔗 https://nowpayments.io/payment/?iid=5028834055&paymentId=6382218207
 
 "
-        "⏳ أو اضغط الزر تحت تشوف تفاصيل الباقة وطريقة الدفع الأخرى 👇",
-        reply_markup=markup
+        "أو اضغط الزر تحت لمزيد من التفاصيل 👇",
+        reply_markup=keyboard
     )
 
 # تفاصيل الاشتراك
-@router.message(F.text == "🔐 فعل اشتراكي")
-async def show_package(message: Message):
-    markup = ReplyKeyboardMarkup(
-        keyboard=[[KeyboardButton(text="✅ أرسلت الإثبات")]],
+@dp.message(lambda message: message.text == "🔐 فعل اشتراكي")
+async def show_package(message: types.Message):
+    keyboard = ReplyKeyboardMarkup(
+        keyboard=[[KeyboardButton(text="✅ أرسلت الدفع")]],
         resize_keyboard=True
     )
     await message.answer(
@@ -82,18 +79,18 @@ async def show_package(message: Message):
 
 "
         "✅ بعد الدفع، اضغط الزر تحت وأرسل الإثبات.",
-        reply_markup=markup
+        reply_markup=keyboard
     )
 
-# استقبال إثبات الدفع
-@router.message(F.text == "✅ أرسلت الإثبات")
-async def ask_proof(message: Message):
+# إثبات الدفع
+@dp.message(lambda message: message.text == "✅ أرسلت الدفع")
+async def ask_for_proof(message: types.Message):
     await message.answer("📸 أرسل الآن صورة أو سكرين لإثبات الدفع.
-"
-                         "⏳ بعد المراجعة اليدوية، يتم التفعيل.")
+⏳ بعد المراجعة اليدوية، يتم التفعيل.")
 
-@router.message(F.photo)
-async def handle_proof(message: Message):
+# استقبال صورة الإثبات
+@dp.message(lambda message: message.photo)
+async def handle_payment_proof(message: types.Message):
     user = message.from_user
     caption = (
         f"🔔 إثبات دفع جديد
@@ -101,15 +98,24 @@ async def handle_proof(message: Message):
         f"👤 من: @{user.username if user.username else 'بدون يوزر'}
 "
         f"🆔 ID: {user.id}
+"
+        f"⏱ الوقت: {message.date}
 
 "
         f"رابط مباشر: tg://user?id={user.id}"
     )
     await bot.send_photo(chat_id=ADMIN_ID, photo=message.photo[-1].file_id, caption=caption)
-    await message.answer("📩 تم استلام الإثبات، بنراجع ونتواصل معك قريباً.")
+    await message.reply("📩 تم استلام الإثبات، بنراجع ونتواصل معك قريباً.")
+
+# حساباتي
+@dp.message(lambda message: message.text == "/accounts")
+async def send_accounts(message: types.Message):
+    await message.answer("📱 كل حساباتي بمكان واحد:
+🌐 https://linktr.ee/odayhottt")
 
 # تشغيل البوت
 async def main():
+    logging.basicConfig(level=logging.INFO)
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
