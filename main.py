@@ -27,15 +27,10 @@ async def send_welcome(message: types.Message, state: FSMContext):
 @dp.message_handler(lambda message: message.text == "📦 تفاصيل الباقة")
 async def package_details(message: types.Message):
     text = (
-        "📦 الاشتراك الشهري بـ ٥٠٠ ريال فقط
-
-"
-        "وش تحصل؟
-"
-        "– أكثر من 50 فيلم خاص 🎬
-"
-        "– كواليس حصرية 📹
-"
+        "📦 الاشتراك الشهري بـ ٥٠٠ ريال فقط\n\n"
+        "وش تحصل؟\n"
+        "– أكثر من 50 فيلم خاص 🎬\n"
+        "– كواليس حصرية 📹\n"
         "– جودة أعلى وتجربة لك أنت بس ✨"
     )
     await message.answer(text)
@@ -45,20 +40,12 @@ async def package_details(message: types.Message):
 async def payment_options(message: types.Message, state: FSMContext):
     await UserStates.waiting_for_payment.set()
     await message.answer(
-        "💳 اختر طريقتك:
-"
-        "🔸 بطاقات نون:
-"
-        "  • https://ar-saudi.likecard.com/online-shopping/noon/noon-ksa/
-"
-        "  • https://yougotagift.com/shop/ar-sa/brands/noon-gift-card-sa/
-
-"
-        "🔹 كريبتو (USDT):
-"
-        "  • https://nowpayments.io/payment/?iid=5028834055&paymentId=6382218207
-
-"
+        "💳 اختر طريقتك:\n"
+        "🔸 بطاقات نون:\n"
+        "  • https://ar-saudi.likecard.com/online-shopping/noon/noon-ksa/\n"
+        "  • https://yougotagift.com/shop/ar-sa/brands/noon-gift-card-sa/\n\n"
+        "🔹 كريبتو (USDT):\n"
+        "  • https://nowpayments.io/payment/?iid=5028834055&paymentId=6382218207\n\n"
         "📩 بعد الدفع، اضغط «أرسلت الدفع» وأرسل سكرين."
     )
 
@@ -76,15 +63,10 @@ async def ask_proof(message: types.Message, state: FSMContext):
 async def handle_payment_proof(message: types.Message):
     user = message.from_user
     caption = (
-        f"🔔 إثبات دفع
-"
-        f"👤 @{user.username if user.username else 'بدون يوزر'}
-"
-        f"🆔 {user.id}
-"
-        f"📆 {message.date}
-
-"
+        f"🔔 إثبات دفع\n"
+        f"👤 @{user.username if user.username else 'بدون يوزر'}\n"
+        f"🆔 {user.id}\n"
+        f"📆 {message.date}\n\n"
         f"رابط: tg://user?id={user.id}"
     )
     admin_id = int(os.getenv("ADMIN_ID"))
@@ -98,8 +80,7 @@ async def handle_payment_proof(message: types.Message):
 # عرض الحسابات
 @dp.message_handler(commands=["accounts"])
 async def send_accounts(message: types.Message):
-    await message.answer("📱 كل حساباتي هنا:
-https://linktr.ee/odayhottt")
+    await message.answer("📱 كل حساباتي هنا:\nhttps://linktr.ee/odayhottt")
 
 if __name__ == "__main__":
     executor.start_polling(dp, skip_updates=True)
