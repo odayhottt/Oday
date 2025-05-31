@@ -22,8 +22,7 @@ async def start_handler(message: Message):
     ], resize_keyboard=True)
     await message.answer(
         f"👋 أنا {hbold('Prince Oday 🔥')}"
-        "هنا كل محتواي الجريء والمميز تحصل عليه بعد الاشتراك
-"
+        "هنا كل محتواي الجريء والمميز تحصل عليه بعد الاشتراك"
         "كل شي مصمم خصيصًا لك 👑",
         reply_markup=kb
     )
@@ -31,23 +30,17 @@ async def start_handler(message: Message):
 @dp.message(F.text == "💳 طرق الاشتراك")
 async def subscription_methods(message: Message):
     await message.answer(
-        "💳 خيارات الاشتراك:
-"
-        "- بطاقات نون مسبقة الدفع
-"
-        "- كريبتو (USDT - TRC20)
-
-"
+        "💳 خيارات الاشتراك:"
+        "- بطاقات نون مسبقة الدفع"
+        "- كريبتو (USDT - TRC20)"
         "بعد الدفع، أرسل لنا الإثبات ليتم التفعيل يدويًا ✅"
     )
 
 @dp.message(F.text == "🎁 بطاقات نون")
 async def noon_cards(message: Message):
     await message.answer(
-        "🎁 تقدر تشتري بطاقات نون من هنا:
-"
-        "🔗 https://ar-saudi.likecard.com/online-shopping/noon/noon-ksa/
-"
+        "🎁 تقدر تشتري بطاقات نون من هنا:"
+        "🔗 https://ar-saudi.likecard.com/online-shopping/noon/noon-ksa/"
         "🔗 https://yougotagift.com/shop/ar-sa/brands/noon-gift-card-sa/"
     )
 
