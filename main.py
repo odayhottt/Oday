@@ -1,22 +1,27 @@
-from aiogram import Bot, Dispatcher, types
+import asyncio
+import logging
+import os
+from aiogram import Bot, Dispatcher, F
 from aiogram.types import Message
 from aiogram.enums import ParseMode
 from aiogram.utils.markdown import hbold
-from aiogram.fsm.context import FSMContext
-from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram import F
-import asyncio
-import os
+from aiogram.types import ReplyKeyboardMarkup
+from aiogram.types import KeyboardButton
 
-BOT_TOKEN = os.getenv("BOT_TOKEN")
+logging.basicConfig(level=logging.INFO)
+
+bot = Bot(token=os.getenv("BOT_TOKEN"), parse_mode=ParseMode.HTML)
+dp = Dispatcher()
+
 ADMIN_ID = int(os.getenv("ADMIN_ID"))
-
-bot = Bot(token=BOT_TOKEN, parse_mode=ParseMode.HTML)
-dp = Dispatcher(storage=MemoryStorage())
 
 @dp.message(F.text == "/start")
 async def welcome(message: Message):
-    text = (
+    keyboard = ReplyKeyboardMarkup(
+        keyboard=[[KeyboardButton(text="🔐 فعل اشتراكي")]],
+        resize_keyboard=True
+    )
+    await message.answer(
         f"👋 هلا فيك في البوت الرسمي لـ {hbold('Prince Oday 🔥')}
 
 "
@@ -35,15 +40,17 @@ async def welcome(message: Message):
         "🔗 https://nowpayments.io/payment/?iid=5028834055&paymentId=6382218207
 
 "
-        "⏳ أو اضغط الزر تحت تشوف تفاصيل الباقة وطريقة الدفع الأخرى 👇"
+        "⏳ اضغط الزر تحت علشان تعرف التفاصيل 👇",
+        reply_markup=keyboard
     )
-    kb = [[types.KeyboardButton(text="🔐 فعل اشتراكي")]]
-    markup = types.ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
-    await message.answer(text, reply_markup=markup)
 
 @dp.message(F.text == "🔐 فعل اشتراكي")
-async def package_info(message: Message):
-    text = (
+async def show_package(message: Message):
+    keyboard = ReplyKeyboardMarkup(
+        keyboard=[[KeyboardButton(text="📸 أرسلت الإثبات")]],
+        resize_keyboard=True
+    )
+    await message.answer(
         "📦 الاشتراك الشهري بـ ٥٠٠ ريال فقط
 
 "
@@ -66,37 +73,35 @@ async def package_info(message: Message):
 "
         "  • https://yougotagift.com/shop/ar-sa/brands/noon-gift-card-sa/
 "
-        "- كريبتو (USDT):
+        "- كريبتو:
 "
         "  • https://nowpayments.io/payment/?iid=5028834055&paymentId=6382218207
 
 "
-        "✅ بعد الدفع، أرسل لنا إثبات الدفع (سكرين أو صورة)"
+        "✅ بعد الدفع، اضغط الزر تحت وأرسل الإثبات.",
+        reply_markup=keyboard
     )
-    await message.answer(text)
+
+@dp.message(F.text == "📸 أرسلت الإثبات")
+async def request_proof(message: Message):
+    await message.answer("📤 أرسل صورة أو سكرين لإثبات الدفع.
+"
+                         "🔎 بنراجعها يدويًا ونفعل اشتراكك بإذن الله.")
 
 @dp.message(F.photo)
-async def handle_proof(message: Message):
+async def forward_proof(message: Message):
     user = message.from_user
     caption = (
-        f"🔔 إثبات دفع جديد
+        f"🧾 إثبات دفع جديد
 "
-        f"👤 من: @{user.username or 'بدون يوزر'}
+        f"👤 المستخدم: @{user.username or 'بدون معرف'}
 "
         f"🆔 ID: {user.id}
 "
-        f"⏱ الوقت: {message.date}
-
-"
-        f"رابط مباشر: tg://user?id={user.id}"
+        f"📎 رابط مباشر: tg://user?id={user.id}"
     )
     await bot.send_photo(chat_id=ADMIN_ID, photo=message.photo[-1].file_id, caption=caption)
-    await message.reply("📩 تم استلام الإثبات، بنراجع ونتواصل معك قريباً.")
-
-@dp.message(F.text == "/accounts")
-async def accounts(message: Message):
-    await message.answer("📱 كل حساباتي بمكان واحد:
-🌐 https://linktr.ee/odayhottt")
+    await message.reply("📩 تم استلام الإثبات، بنراجع ونرجع لك قريبًا.")
 
 async def main():
     await dp.start_polling(bot)
