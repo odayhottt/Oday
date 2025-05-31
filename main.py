@@ -12,7 +12,10 @@ if not BOT_TOKEN:
     raise ValueError("Missing BOT_TOKEN in environment variables")
 
 dp = Dispatcher()
-bot = Bot(token=BOT_TOKEN, parse_mode=ParseMode.HTML)
+bot = Bot(
+    token=BOT_TOKEN,
+    default=DefaultBotProperties(parse_mode=ParseMode.HTML)
+)
 
 @dp.message(F.text == "/start")
 async def start_handler(message: Message):
