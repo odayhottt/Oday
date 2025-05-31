@@ -12,6 +12,7 @@ if not BOT_TOKEN:
     raise ValueError("Missing BOT_TOKEN in environment variables")
 
 dp = Dispatcher()
+from aiogram.client.default import DefaultBotProperties
 bot = Bot(
     token=BOT_TOKEN,
     default=DefaultBotProperties(parse_mode=ParseMode.HTML)
