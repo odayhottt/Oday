@@ -1,111 +1,60 @@
-
-from aiogram import Bot, Dispatcher, types
+import asyncio
+import logging
+import os
+from aiogram import Bot, Dispatcher, F
+from aiogram.types import Message
 from aiogram.enums import ParseMode
 from aiogram.utils.markdown import hbold
-from aiogram.types import Message, ReplyKeyboardMarkup
-from aiogram.filters import Command
-from aiogram import F
-from aiogram.client.default import DefaultBotProperties
-from aiogram.utils.markdown import hlink
-
-import asyncio
-import os
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-ADMIN_ID = os.getenv("ADMIN_ID")
+if not BOT_TOKEN:
+    raise ValueError("Missing BOT_TOKEN in environment variables")
 
-bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher()
+bot = Bot(token=BOT_TOKEN, parse_mode=ParseMode.HTML)
 
-@dp.message(Command("start"))
-async def start(message: Message):
-    kb = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
-        [types.KeyboardButton(text="🔐 فعل اشتراكي")]
-    ])
+@dp.message(F.text == "/start")
+async def start_handler(message: Message):
+    kb = ReplyKeyboardMarkup(keyboard=[
+        [KeyboardButton(text="💳 طرق الاشتراك")],
+        [KeyboardButton(text="🎁 بطاقات نون")]
+    ], resize_keyboard=True)
     await message.answer(
-        f"👋 هلا فيك في البوت الرسمي لـ {hbold('Odayhottt')}
-
+        f"👋 أنا {hbold('Prince Oday 🔥')}
 "
-        "🔥 هنا تقدر تشترك بسهولة ونساعدك بخيارات دفع مرنة
-
+        "هنا كل محتواي الجريء والمميز تحصل عليه بعد الاشتراك
 "
-        "💳 خيارات الدفع:
+        "كل شي مصمم خصيصًا لك 👑",
+        reply_markup=kb
+    )
+
+@dp.message(F.text == "💳 طرق الاشتراك")
+async def subscription_methods(message: Message):
+    await message.answer(
+        "💳 خيارات الاشتراك:
 "
         "- بطاقات نون مسبقة الدفع
 "
-        "- كريبتو: USDT (TRC20)
+        "- كريبتو (USDT - TRC20)
 
 "
-        "📲 للدفع بالكريبتو:
-"
-        "🔗 https://nowpayments.io/payment/?iid=5028834055&paymentId=6382218207
-
-"
-        "⏳ أو اضغط الزر تحت تشوف تفاصيل الباقة وطريقة الدفع الأخرى 👇",
-        reply_markup=kb
+        "بعد الدفع، أرسل لنا الإثبات ليتم التفعيل يدويًا ✅"
     )
 
-@dp.message(F.text == "🔐 فعل اشتراكي")
-async def show_plan(message: Message):
-    kb = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
-        [types.KeyboardButton(text="✅ أرسلت الإثبات")]
-    ])
+@dp.message(F.text == "🎁 بطاقات نون")
+async def noon_cards(message: Message):
     await message.answer(
-        "📦 الاشتراك الشهري بـ ٥٠٠ ريال فقط
-
+        "🎁 تقدر تشتري بطاقات نون من هنا:
 "
-        "وش تحصل بعد الاشتراك؟
+        "🔗 https://ar-saudi.likecard.com/online-shopping/noon/noon-ksa/
 "
-        "– أكثر من 50 فيلم كامل ✅
-"
-        "– جريء ومن إنتاجي الخاص 🎬
-"
-        "– كواليس وفعاليات من قلب التصوير 📹
-"
-        "– جودة أعلى… وتجربة مصممة لك أنت فقط ✨
-
-"
-        "🧾 خيارات الدفع:
-"
-        "- بطاقات نون:
-"
-        "  • https://ar-saudi.likecard.com/online-shopping/noon/noon-ksa/
-"
-        "  • https://yougotagift.com/shop/ar-sa/brands/noon-gift-card-sa/
-"
-        "- كريبتو (USDT):
-"
-        "  • https://nowpayments.io/payment/?iid=5028834055&paymentId=6382218207
-
-"
-        "✅ بعد الدفع، اضغط الزر تحت وأرسل الإثبات.",
-        reply_markup=kb
+        "🔗 https://yougotagift.com/shop/ar-sa/brands/noon-gift-card-sa/"
     )
-
-@dp.message(F.text == "✅ أرسلت الإثبات")
-async def request_proof(message: Message):
-    await message.answer("📸 أرسل الآن صورة أو سكرين لإثبات الدفع.
-⏳ بعد المراجعة اليدوية، يتم التفعيل.")
-
-@dp.message(F.photo)
-async def receive_proof(message: Message):
-    user = message.from_user
-    caption = (
-        f"🔔 إثبات دفع جديد
-"
-        f"👤 من: @{user.username or 'بدون يوزر'}
-"
-        f"🆔 ID: {user.id}
-"
-        f"⏱ الوقت: {message.date}
-
-"
-        f"رابط مباشر: tg://user?id={user.id}"
-    )
-    await bot.send_photo(chat_id=ADMIN_ID, photo=message.photo[-1].file_id, caption=caption)
-    await message.reply("📩 تم استلام الإثبات، بنراجع ونتواصل معك قريباً.")
 
 async def main():
+    logging.basicConfig(level=logging.INFO)
+    await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
