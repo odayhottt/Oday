@@ -47,10 +47,7 @@ async def payment_options(message: Message):
 
 @dp.message(F.text == "📬 تواصل معي")
 async def contact_me(message: Message):
-    await message.answer("📲 تقدر تتواصل معي مباشرة على تيليجرام:
-
-@odayh1")
-
+    await message.answer("📲 تقدر تتواصل معي مباشرة على تيليجرام:@odayh1")
 async def main():
     await dp.start_polling(bot)
 
