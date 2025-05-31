@@ -1,49 +1,80 @@
 
-import asyncio
-from aiogram import Bot, Dispatcher, types, F
+from aiogram import Bot, Dispatcher, types
 from aiogram.enums import ParseMode
-from aiogram.types import Message, KeyboardButton, ReplyKeyboardMarkup
 from aiogram.client.default import DefaultBotProperties
-from aiogram.filters import CommandStart
+from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
+from aiogram.filters import CommandStart, Text
+from aiogram import F
+from aiogram.utils.markdown import hbold
+from aiogram.utils.keyboard import ReplyKeyboardBuilder
+from aiogram.enums import ParseMode
+from aiogram import Router
+from aiogram import Dispatcher
+from aiogram import types
+from aiogram import Bot
+from aiogram import F
+from aiogram.enums import ParseMode
+from aiogram.client.default import DefaultBotProperties
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+from aiogram.filters import CommandStart, Text
+from aiogram import Dispatcher, Router
+from aiogram.types import Message
+from aiogram import BaseMiddleware
+from aiogram.fsm.storage.memory import MemoryStorage
+import asyncio
 import os
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-OWNER_USERNAME = os.getenv("OWNER_USERNAME")  # مثال: odayh1
 
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
-dp = Dispatcher()
+dp = Dispatcher(storage=MemoryStorage())
+router = Router()
+dp.include_router(router)
 
-@dp.message(CommandStart())
+@router.message(CommandStart())
 async def start_handler(message: Message):
+    text = (
+        f"👋 هلا فيك في البوت الرسمي لـ {hbold('Prince Oday 🔥')}
+
+"
+        "📦 الاشتراك الشهري حالياً بـ ٥٠٠ ريال فقط
+
+"
+        "وش تحصل بعد الاشتراك؟
+"
+        "– أكثر من 50 فيلم كامل ✅
+"
+        "– جريء ومن إنتاجي الخاص 🎬
+"
+        "– كواليس وفعاليات من قلب التصوير 📹
+"
+        "– جودة أعلى… وتجربة مصممة لك أنت فقط ✨
+
+"
+        "💳 طرق الاشتراك:
+"
+        "• بطاقات نون:
+"
+        "  - https://ar-saudi.likecard.com/online-shopping/noon/noon-ksa/
+"
+        "  - https://yougotagift.com/shop/ar-sa/brands/noon-gift-card-sa/
+"
+        "• كريبتو (USDT - TRC20):
+"
+        "  - https://nowpayments.io/payment/?iid=5028834055&paymentId=6382218207
+"
+    )
     keyboard = ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text="💰 طرق الدفع")],
-            [KeyboardButton(text="📬 تواصل معي")]
+            [KeyboardButton(text="📬 تواصل معي")],
         ],
         resize_keyboard=True
     )
+    await message.answer(text, reply_markup=keyboard)
 
-    welcome_text = (
-        "👋 هلا فيك في البوت الرسمي لـ <b>Prince Oday 🔥</b>\n\n"
-        "📦 <b>تفاصيل الاشتراك:</b>\n"
-        "الاشتراك الشهري حاليًا <b>٥٠٠ ريال</b> فقط.\n\n"
-        "وش تحصل بعد الاشتراك؟\n"
-        "– أكثر من 50 فيلم كامل ✅ وجريء من إنتاجي الخاص 🎬\n"
-        "– كواليس وفعاليات من قلب التصوير 📹\n"
-        "– جودة أعلى… وتجربة مصممة لك أنت فقط ✨\n"
-    )
-    await message.answer(welcome_text, reply_markup=keyboard)
-
-@dp.message(F.text == "💰 طرق الدفع")
-async def payment_options(message: Message):
-    await message.answer(
-        "💳 تقدر تشترك عن طريق التحويل البنكي أو بطاقات نون.\n"
-        "تواصل معي مباشرة عشان أرسل لك التفاصيل الكاملة 🔒"
-    )
-
-@dp.message(F.text == "📬 تواصل معي")
-async def contact(message: Message):
-    await message.answer(f"راسلني خاص على التيليجرام:\n👉 @{OWNER_USERNAME}")
+@router.message(Text("📬 تواصل معي"))
+async def contact_handler(message: Message):
+    await message.answer("📩 تقدر تتواصل معي مباشر هنا: @odayh1")
 
 async def main():
     await dp.start_polling(bot)
