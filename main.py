@@ -22,7 +22,7 @@ async def welcome(message: Message):
         resize_keyboard=True
     )
     await message.answer(
-        f"👋 هلا فيك في البوت الرسمي لـ {hbold('Prince Oday 🔥')}
+        f"👋 هلا فيك في البوت الرسمي لـ {hbold('Prince Oday 🔥')}"
 
 "
         "🔥 هنا تقدر تشترك بسهولة ونساعدك بخيارات دفع مرنة
