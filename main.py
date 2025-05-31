@@ -21,8 +21,7 @@ async def start_handler(message: Message):
         [KeyboardButton(text="🎁 بطاقات نون")]
     ], resize_keyboard=True)
     await message.answer(
-        f"👋 أنا {hbold('Prince Oday 🔥')}
-"
+        f"👋 أنا {hbold('Prince Oday 🔥')}"
         "هنا كل محتواي الجريء والمميز تحصل عليه بعد الاشتراك
 "
         "كل شي مصمم خصيصًا لك 👑",
