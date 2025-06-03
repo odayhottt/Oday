@@ -11,6 +11,10 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 from aiogram.client.default import DefaultBotProperties
 
+from aiogram.client.default import DefaultBotProperties
+
+from aiogram.client.default import DefaultBotProperties
+
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher(storage=MemoryStorage())
 
